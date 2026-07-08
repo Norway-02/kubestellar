@@ -464,9 +464,13 @@ func (c *Controller) run(ctx context.Context, workers int, cListers chan interfa
 				// run the informer
 				// we need to be able to stop informers for APIs (CRDs) that are removed
 				// after startup, therefore we use a stopper channel for each informer
-				// instead than informerFactory.Start(ctx.Done())
+				// instead than informerFactory.Start(ctx.Done()).
+				// Do NOT use defer close(stopper) here: defer runs when run() returns, not
+				// at the end of the loop iteration. If syncCRD already closed a stopper
+				// for a removed CRD, the deferred close would fire again on shutdown and
+				// panic with "close of closed channel". Stoppers are closed either by
+				// syncCRD (for individual CRD removal) or by the shutdown goroutine below.
 				stopper := make(chan struct{})
-				defer close(stopper)
 				c.stoppers.Set(gvr, stopper)
 				go informer.Run(stopper)
 			}
@@ -504,10 +508,23 @@ func (c *Controller) run(ctx context.Context, workers int, cListers chan interfa
 	c.logger.Info("Started workers")
 	c.initializedTs = time.Now()
 
+	// Wait for context cancellation, then close all remaining stoppers.
+	// We use safeClose to avoid panics due to concurrent close operations.
 	<-ctx.Done()
 	c.logger.Info("Shutting down workers")
+	c.stoppers.Iterator(func(_ schema.GroupVersionResource, stopper chan struct{}) error {
+		safeClose(stopper)
+		return nil
+	})
 
 	return nil
+}
+
+func safeClose(ch chan struct{}) {
+	defer func() {
+		recover()
+	}()
+	close(ch)
 }
 
 func (c *Controller) setupManagedClustersInformer(ctx context.Context) error {
