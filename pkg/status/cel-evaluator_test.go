@@ -50,8 +50,8 @@ func TestInventoryWithNonStringValue(t *testing.T) {
 		t.Fatalf("Evaluate failed: %v", err)
 	}
 
-	if result.Value() != true {
-		t.Errorf("expected true, got %v", result.Value())
+	if val, ok := result.Value().(bool); !ok || !val {
+		t.Errorf("expected bool true, got type %T value %v", result.Value(), result.Value())
 	}
 }
 
@@ -81,7 +81,7 @@ func TestInventoryWithStringValueStillWorks(t *testing.T) {
 		t.Fatalf("Evaluate failed: %v", err)
 	}
 
-	if result.Value() != true {
-		t.Errorf("expected true, got %v", result.Value())
+	if val, ok := result.Value().(bool); !ok || !val {
+		t.Errorf("expected bool true, got type %T value %v", result.Value(), result.Value())
 	}
 }
