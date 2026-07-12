@@ -152,11 +152,13 @@ func (c *Controller) updateObjectStatus(ctx context.Context, objectIdentifier ut
 	if status == nil {
 		status = map[string]any{}
 	}
+	copied := false
 	if apiequality.Semantic.DeepEqual(unstrObj.Object["status"], status) {
 		logger.V(5).Info("Workload object found to already have intended status", "objectIdentifier", objectIdentifier)
 	} else {
 		// DeepCopy before mutating to avoid corrupting the informer cache.
 		unstrObj = unstrObj.DeepCopy()
+		copied = true
 		// set the status and update the object
 		unstrObj.Object["status"] = status
 
@@ -174,14 +176,14 @@ func (c *Controller) updateObjectStatus(ctx context.Context, objectIdentifier ut
 	}
 
 	if haveSingleton && !wantSingleton {
-		err = c.handleStatusReturnLabel(ctx, unstrObj, objectIdentifier.GVR(), false, util.BindingPolicyLabelSingletonStatusKey, true)
+		err = c.handleStatusReturnLabel(ctx, unstrObj, objectIdentifier.GVR(), false, util.BindingPolicyLabelSingletonStatusKey, copied)
 		if err != nil {
 			return err
 		}
 	}
 
 	if haveMultiWEC && !wantMultiWEC {
-		err = c.handleStatusReturnLabel(ctx, unstrObj, objectIdentifier.GVR(), false, util.BindingPolicyLabelMultiWECStatusKey, true)
+		err = c.handleStatusReturnLabel(ctx, unstrObj, objectIdentifier.GVR(), false, util.BindingPolicyLabelMultiWECStatusKey, copied)
 		if err != nil {
 			return err
 		}

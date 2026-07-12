@@ -186,7 +186,7 @@ func TestUpdateObjectStatus_NoOpWhenStatusAlreadyMatches(t *testing.T) {
 	statusUpdateCalled := false
 	fakeDynClient.PrependReactor("update", "deployments", func(action k8stesting.Action) (bool, runtime.Object, error) {
 		// only flag if this is a status subresource update, not a label update
-		if action.(k8stesting.UpdateAction).GetSubresource() == "status" {
+		if updateAction, ok := action.(k8stesting.UpdateAction); ok && updateAction.GetSubresource() == "status" {
 			statusUpdateCalled = true
 		}
 		return false, nil, nil
