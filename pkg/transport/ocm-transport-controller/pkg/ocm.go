@@ -44,14 +44,20 @@ type ocm struct {
 }
 
 var createOnlyStrategy = workv1.UpdateStrategy{Type: workv1.UpdateStrategyTypeCreateOnly}
+var serverSideApplyStrategy = workv1.UpdateStrategy{
+	Type: workv1.UpdateStrategyTypeServerSideApply,
+	ServerSideApply: &workv1.ServerSideApplyConfig{
+		Force: true,
+	},
+}
 
 func (ocm *ocm) WrapObjects(wrapees []transport.Wrapee, kindToResource func(schema.GroupKind) string) runtime.Object {
 	manifests := make([]workv1.Manifest, len(wrapees))
 	var configs []workv1.ManifestConfigOption
 	for i, wrapee := range wrapees {
 		manifests[i].RawExtension = runtime.RawExtension{Object: wrapee.Object}
+		gvk := wrapee.Object.GroupVersionKind()
 		if wrapee.CreateOnly {
-			gvk := wrapee.Object.GroupVersionKind()
 			rsc := kindToResource(gvk.GroupKind())
 			configs = append(configs, workv1.ManifestConfigOption{
 				ResourceIdentifier: workv1.ResourceIdentifier{
@@ -61,6 +67,17 @@ func (ocm *ocm) WrapObjects(wrapees []transport.Wrapee, kindToResource func(sche
 					Name:      wrapee.Object.GetName(),
 				},
 				UpdateStrategy: &createOnlyStrategy,
+			})
+		} else if gvk.Group == "" && gvk.Kind == "ServiceAccount" {
+			rsc := kindToResource(gvk.GroupKind())
+			configs = append(configs, workv1.ManifestConfigOption{
+				ResourceIdentifier: workv1.ResourceIdentifier{
+					Group:     gvk.Group,
+					Resource:  rsc,
+					Namespace: wrapee.Object.GetNamespace(),
+					Name:      wrapee.Object.GetName(),
+				},
+				UpdateStrategy: &serverSideApplyStrategy,
 			})
 		}
 	}
