@@ -270,7 +270,8 @@ func PatchStatus(ctx context.Context, unstrObj *unstructured.Unstructured, statu
 	return err
 }
 
-// DynamicForResource returns a DynamicResourceInterface for the given GroupVersionResource and namespace.
+// DynamicForResource provides a convenient helper to obtain a dynamic.ResourceInterface.
+// It exists to avoid repetitive client setup and namespace handling logic across controllers.
 func DynamicForResource(dynClient dynamic.Interface, gvr schema.GroupVersionResource, namespace string) dynamic.ResourceInterface {
 	nsblIfc := dynClient.Resource(gvr)
 	if namespace == metav1.NamespaceNone {

@@ -87,6 +87,8 @@ func (sf *StringFilter) Passes(candidate string, passStar bool) bool {
 }
 
 // FilterSlice filters a slice of candidate strings, returning only those that pass the filter criteria.
+// It iterates through each candidate and applies the StringFilter predicate to determine inclusion.
+// (as evaluated by the Passes predicate).
 func (sf *StringFilter) FilterSlice(candidates []string, passStar bool) []string {
 	ans := make([]string, 0, len(candidates))
 	for _, candidate := range candidates {
