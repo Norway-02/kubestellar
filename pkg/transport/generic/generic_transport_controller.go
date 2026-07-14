@@ -343,7 +343,7 @@ type genericTransportController struct {
 	workqueue workqueue.RateLimitingInterface
 
 	transport        transport.Transport //transport is a specific implementation for the transport interface.
-	transportClient  dynamic.Interface   // dynamic client to transport wrapped object. since object kind is unknown during compilation, we use dynamic
+	transportClient  dynamic.Interface   // dynamic client to transport wrapped object. Since object kind is unknown during compilation, we use dynamic
 	wrappedObjectGVR schema.GroupVersionResource
 
 	wdsDynamicClient dynamic.Interface
