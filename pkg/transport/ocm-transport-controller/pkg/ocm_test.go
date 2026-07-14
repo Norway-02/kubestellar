@@ -73,4 +73,7 @@ func TestWrapObjects_ServiceAccount(t *testing.T) {
 	if config.UpdateStrategy.ServerSideApply == nil || !config.UpdateStrategy.ServerSideApply.Force {
 		t.Errorf("expected Force: true in ServerSideApply strategy, got %v", config.UpdateStrategy.ServerSideApply)
 	}
+	if config.UpdateStrategy.ServerSideApply.FieldManager != "kubestellar-transport-controller" {
+		t.Errorf("expected FieldManager: kubestellar-transport-controller in ServerSideApply strategy, got %v", config.UpdateStrategy.ServerSideApply.FieldManager)
+	}
 }
