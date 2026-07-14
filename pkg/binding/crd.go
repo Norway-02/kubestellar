@@ -97,7 +97,7 @@ func (c *Controller) syncCRD(ctx context.Context, objIdentifier util.ObjectIdent
 		stopper, ok := c.stoppers.Get(gvr)
 		if !ok {
 			logger.V(5).Info("Informer is already absent.", "gvr", gvr)
-				} else {
+		} else {
 			logger.V(2).Info("API should not be watched, ensuring the informer's absence.", "gvr", gvr)
 			// close channel
 			safeClose(stopper)

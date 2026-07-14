@@ -520,9 +520,15 @@ func (c *Controller) run(ctx context.Context, workers int, cListers chan interfa
 	return nil
 }
 
+// safeClose safely closes a stopper channel and recovers from panics if it was already closed.
+// This is necessary because both syncCRD (when a CRD is removed) and the shutdown goroutine
+// might attempt to close the same stopper concurrently.
 func safeClose(ch chan struct{}) {
 	defer func() {
-		recover()
+		if r := recover(); r != nil {
+			// Channel was already closed.
+			klog.V(4).Infof("safeClose: channel already closed (recovered from %v)", r)
+		}
 	}()
 	close(ch)
 }
