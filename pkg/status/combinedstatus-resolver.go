@@ -508,7 +508,13 @@ func (c *combinedStatusResolver) evaluateWorkStatusesPerBindingReadLocked(ctx co
 					logger.V(3).Info("Found more than one WorkStatus object, using the first", "binding", bindingName,
 						"workloadObjIdentifier", workloadObjIdentifier, "destination", destination)
 				}
-				workStat, err = runtimeObjectToWorkStatus(objs[0].(runtime.Object))
+				runtimeObj, ok := objs[0].(runtime.Object)
+				if !ok {
+					runtime2.HandleError(fmt.Errorf("value of type %T does not implement runtime.Object", objs[0]))
+					logger.V(3).Info("Skipping workload object for destination due to type assertion failure", "binding", bindingName, "destination", destination, "workloadObjIdentifier", workloadObjIdentifier)
+					continue
+				}
+				workStat, err = runtimeObjectToWorkStatus(runtimeObj)
 				if err != nil {
 					runtime2.HandleError(fmt.Errorf("failed to convert runtime.Object to workStatus: %w", err))
 					continue
