@@ -692,6 +692,7 @@ func (c *Controller) enqueueBinding(name string) {
 // processNextWorkItem function in order to read and process a message on the
 // workqueue.
 func (c *Controller) runWorker(ctx context.Context) {
+	defer utilruntime.HandleCrash()
 	for c.processNextWorkItem(ctx) {
 	}
 }
